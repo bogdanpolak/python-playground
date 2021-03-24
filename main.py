@@ -1,39 +1,21 @@
-import http.client, os.path
-from datetime import datetime
-import credentials
+import credentials, src.services.forecast, lists
 
-expenses = [10.30, 24.60, 10, 15, 56.69]
-total = sum(expenses)
+lists.run()
 
-def callOpenWeather(cityCode):
-    headers = {
-        'x-rapidapi-key': credentials.rapidapi_key,
-        'x-rapidapi-host': "community-open-weather-map.p.rapidapi.com"
-    }
-    query = cityCode.replace(' ','%20').replace(',','%2C')
-    conn = http.client.HTTPSConnection("community-open-weather-map.p.rapidapi.com")
-    conn.request("GET", "/forecast?q=" + query, headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data
+src.services.forecast.rapidApiSecureKey = credentials.rapidapi_key
 
-def cityCodeToFileName(cityCode):
-    folder = 'forecasts/'
-    cityPart = cityCode.replace(' ','-').replace(',','-')
-    datePart = datetime.today().strftime('%Y-%m-%d') 
-    return  folder + cityPart + '_' + datePart + '.json'
-        
-def hasForecast (cityCode):
-    fname = cityCodeToFileName(cityCode)
-    return os.path.isfile(fname)
+cityCodes = ["atlanta,us", "denver,us", "edinburgh,uk", "warsaw,pl", "mumbai,in"]
 
-def saveForecast(cityCode,data):
-    fname = cityCodeToFileName(cityCode)
-    f = open(fname, "a")
-    f.write(data)
-    f.close()
+for cityCode in cityCodes:
+    forecast = src.services.forecast.getForecast(cityCode)
+    entry = forecast["list"][0]
+    dateTime = entry["dt_txt"]
+    temperature = round(entry["main"]["temp"]-273.15,2)
+    fealsLike = round(entry["main"]["feels_like"]-273.15,2)
+    windSpeed = str(round(entry["wind"]["speed"],2))+"m/s"
+    clouds = str(entry["clouds"]["all"])+"%"
+    weatherDesc = entry["weather"][0]["description"]
+    clouds = str(entry["clouds"]["all"])+"%"
+    print(cityCode, dateTime, temperature, fealsLike, windSpeed, clouds, weatherDesc, sep="\t")
 
-cityCode = "san francisco,us"
-data = callOpenWeather(apiSecureKey,cityCode)
-dataStr = data.decode("utf-8")
-saveForecast(cityCode,dataStr)
+# print(src.services.forecast.getForecast("atlanta,us")["list"][0])
