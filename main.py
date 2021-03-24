@@ -34,6 +34,6 @@ def saveForecast(cityCode,data):
     f.close()
 
 cityCode = "san francisco,us"
-data = callOpenWeather(apiSecureKey,cityCode)
+data = callOpenWeather(cityCode)
 dataStr = data.decode("utf-8")
 saveForecast(cityCode,dataStr)
