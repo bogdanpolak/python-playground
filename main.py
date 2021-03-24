@@ -1,5 +1,4 @@
-import http.client, os.path
-from datetime import datetime
+import http.client, os.path, json, datetime
 import credentials
 
 expenses = [10.30, 24.60, 10, 15, 56.69]
@@ -20,20 +19,39 @@ def callOpenWeather(cityCode):
 def cityCodeToFileName(cityCode):
     folder = 'forecasts/'
     cityPart = cityCode.replace(' ','-').replace(',','-')
-    datePart = datetime.today().strftime('%Y-%m-%d') 
+    datePart = datetime.datetime.today().strftime('%Y-%m-%d') 
     return  folder + cityPart + '_' + datePart + '.json'
         
 def hasForecast (cityCode):
     fname = cityCodeToFileName(cityCode)
     return os.path.isfile(fname)
 
-def saveForecast(cityCode,data):
+def saveForecast(cityCode,forecastData):
     fname = cityCodeToFileName(cityCode)
     f = open(fname, "a")
-    f.write(data)
+    f.write(forecastData)
     f.close()
 
-cityCode = "san francisco,us"
-data = callOpenWeather(cityCode)
-dataStr = data.decode("utf-8")
-saveForecast(cityCode,dataStr)
+def loadForacast(cityCode):
+    fname = cityCodeToFileName(cityCode)
+    f = open(fname, "r")
+    forecastData = f.read()
+    f.close()
+    return forecastData
+
+def getForecast(cityCode):
+    if hasForecast(cityCode):
+        dataStr = loadForacast(cityCode)
+    else:
+        data = callOpenWeather(cityCode)
+        dataStr = data.decode("utf-8")
+        saveForecast(cityCode,dataStr)
+    jsonForecast = json.loads(dataStr)
+    return jsonForecast
+
+# cityCode = "san francisco,us"
+# cityCode = "atlanta,us"
+# cityCode = "denver,us"
+# cityCode = "edinburgh,uk"
+cityCode = "warsaw,pl"
+print(getForecast(cityCode))
